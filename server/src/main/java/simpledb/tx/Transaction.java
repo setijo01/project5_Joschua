@@ -79,6 +79,7 @@ public class Transaction {
       concurMgr.release();
       myBuffers.unpinAll();
       System.out.println("transaction " + txnum + " committed");
+      activeTx.remove(this);
    }
    
    /**
@@ -93,7 +94,10 @@ public class Transaction {
       concurMgr.release();
       myBuffers.unpinAll();
       System.out.println("transaction " + txnum + " rolled back");
+      activeTrans.remove(this);
+      lock.notifyAll();
    }
+   
    
    /**
     * Flushes all modified buffers.
@@ -106,7 +110,8 @@ public class Transaction {
    public void recover() {
       SimpleDB.bufferMgr().flushAll(txnum);
       recoveryMgr.recover();
-   }
+    }
+   
    
    /**
     * Pins the specified block.
